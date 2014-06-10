@@ -132,7 +132,7 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
 		singlehold=readonedir(paste("plate",sprintf("%02d", strainlist[i,]$run)))
 		singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
 		singlehold$temperature=strainlist[i,]$temperature
-		singlehold  %.% group_by(well) %.% do(plotter)
+		d_ply(singlehold,.(well),plotter)
 	}
 	setwd(startdir)
 }
