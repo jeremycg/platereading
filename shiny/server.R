@@ -5,7 +5,7 @@ library(nlstools)
 stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 startingdir=choose.dir() #change for your directory
 setwd(startingdir)
-data=read.csv("grouped.csv")
+data<-read.csv("outputfits.csv")
 strainlist=read.csv("strainlist.csv")
 x3=data.frame()
 buchworm= od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) * 	#this is my modification for my factors
@@ -15,7 +15,6 @@ buchworm= od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) * 	#this is m
 
 
 shinyServer(function(input, output) {
-
   output$Plot1 <- renderPlot({
 	data2<-data[data$temperature==20,]
     dataclean <- data2[data2$residual<input$cutoff,]
@@ -26,7 +25,7 @@ shinyServer(function(input, output) {
     dataclean <- data2[data2$residual<input$cutoff,]
     plot(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,xlab="strain",ylab=as.character(input$variable),main="29 degrees")
   })
-	output$table1 <- renderTable({
+  output$table1 <- renderTable({
 		data2<-data[data$temperature==20,]
 		dataclean <- data2[data2$residual<input$cutoff,]
 		table11=c()

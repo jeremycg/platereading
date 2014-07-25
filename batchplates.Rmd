@@ -99,7 +99,8 @@ namer<-function(x,y){
 put it all together!
 ```{r full thing}
 setwd(choose.dir())
-file.remove("grouped.csv")
+if(file.exists("grouped.csv")){file.remove("grouped.csv")}
+if(file.exists("outputfits.csv")){file.remove("outputfits.csv")}
 x=namer(looper(getwd()),"strainlist.csv")
 ```
 next is to write it as a .csv - we can also remove the outliers and controls later
@@ -129,6 +130,7 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   setwd(x)
 	strainlist=read.csv(z)
 	strainlist=strainlist[which(strainlist$strain==y),]
+  if(length(strainlist[,1])==0){return("strain not found")}
 	for(i in 1:length(strainlist[,1])){
 		singlehold=readonedir(paste("plate",sprintf("%02d", strainlist[i,]$run)))
 		singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
@@ -149,5 +151,5 @@ plotter<-function(x,well,strain){
 ```
 example plots
 ```{r example plots}
-plotlots(getwd(),"PB1112","strainlist.csv")
+plotlots(getwd(),"AF16","strainlist.csv")
 ```

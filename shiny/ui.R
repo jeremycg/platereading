@@ -1,5 +1,6 @@
 library(shiny)
-startingdir="C:/Users/jeremy/Desktop/jens data/jen data 10-6" #change for your directory
+
+startingdir=getwd()#change for your directory
 setwd(startingdir)		
 strainlist=read.csv("strainlist.csv")
 
