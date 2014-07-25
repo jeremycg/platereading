@@ -2,8 +2,6 @@ library(shiny)
 library(gplots)
 library(nlstools)
 
-data=data[data$strain!="S-media + bacteria",]
-data=data[data$strain!="S-media",]
 stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
 startingdir=choose.dir() #change for your directory
 setwd(startingdir)
