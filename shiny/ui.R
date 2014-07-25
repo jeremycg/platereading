@@ -27,9 +27,9 @@ shinyUI(pageWithSidebar(
   ),
 mainPanel(
     tabsetPanel(
-      tabPanel("BoxPlots", plotOutput("Plot1"), plotOutput("Plot2")), 
+      tabPanel("BoxPlots", plotOutput("Plot1",height="100%")), 
       tabPanel("Table", tableOutput("table1"),tableOutput("table2")), 
-      tabPanel("Histograms", plotOutput("Plot3"), plotOutput("Plot4")),
+      tabPanel("Histograms", plotOutput("Plot3",height="100%")),
 	  tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%"))
     )
   )
