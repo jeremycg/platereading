@@ -99,10 +99,11 @@ namer<-function(x,y){
 put it all together!
 ```{r full thing}
 setwd(choose.dir())
+file.remove("grouped.csv")
 x=namer(looper(getwd()),"strainlist.csv")
 ```
 next is to write it as a .csv - we can also remove the outliers and controls later
-```{r output}
+```{r outputfits.csv}
 write.csv(x,file="outputfits.csv",row.names=F)
 ```
 make a dataframe with all the means and sds
@@ -116,7 +117,7 @@ compileall<-function(x,y=0.1){
 }
 ```
 
-```{r output}
+```{r output grouped.csv}
 y=compileall(x,0.1)
 write.csv(y,file="grouped.csv",row.names=F)
 ```
@@ -145,4 +146,8 @@ plotter<-function(x,well,strain){
 	plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],"Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2),4))))
 	points(x$time,predict(workingfit,list(time=x$time)),pch=3,col=2)
 }
+```
+example plots
+```{r example plots}
+plotlots(getwd(),"PB1112","strainlist.csv")
 ```
