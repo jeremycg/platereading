@@ -1,5 +1,5 @@
 #checking and installing libraries
-libraries=c("nlstools","plyr","dplyr","shiny")
+libraries=c("nlstools","plyr","dplyr","shiny","gplots")
 for(i in libraries){if(i %in% rownames(installed.packages()) == FALSE) {install.packages(i)}}
 lapply(libraries, require, character.only=T)
 #setting working directory
