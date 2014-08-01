@@ -4,7 +4,7 @@
 r script for reading plates off a bioanalyser to give curve parameters as an output.
 Plates are fit to the buchanan curve by nls (there will be bad fits) and the parameters output for further analysis.
 
-Takes input of a directory of directories of reads. The main directory must have one directory, labelled "plate xx", for each run. These directories must contain the .csv files given by the bioanalyser software, labelled xxx.csv, where xxx is the time in hours the reading was taken.
+Takes input of a directory of directories of reads. The main directory must have one directory, labelled "Plate xx", for each run. Capital P is important on *nix systems. These directories must contain the .csv files given by the bioanalyser software, labelled xxx.csv, where xxx is the time in hours the reading was taken.
 Additionally, the root directory must contain a "strainlist.csv" which has run, column, strain and temperature columns.
 
 The shiny app allows visualisation of data based on residual cutoffs, and plots of individual fits. It is independant of the other files - they contain functions for running individual parts of the analysis.
