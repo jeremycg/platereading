@@ -8,7 +8,7 @@ setwd(startingdir)
 strainlist=read.csv("strainlist.csv")
 #defining some functions!
 stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
-
+ 
 buchworm= od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) * 	
     log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) * 	
     (time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0)
@@ -20,7 +20,7 @@ compileall<-function(x,y=0.1){
   names(z)=c("strain","temperature","lag","mumax","od0","odmax","sdlag","sdmumax","sdod0","sdodmax","N")
   return(z)
 }
-
+ 
 readonedir<-function(x){
   startingdir=getwd()
   setwd(x)
@@ -43,7 +43,7 @@ readonedir<-function(x){
   x3$time=as.numeric(x3$time)
   return(x3)
 }
-
+ 
 fitbuch<-function(x,y=1){
   x$od<-1-x$od
   if(y==1){x=x[x$time!=0,]}
@@ -53,11 +53,11 @@ fitbuch<-function(x,y=1){
   names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
   return(z3)
 }
-
+ 
 plyrfit<-function(x){
   ddply(x,.(plate,well),function(df){fitbuch(df)})
 }
-
+ 
 looper<-function(x){
   startingdir=getwd()
   z3=data.frame()
@@ -69,7 +69,7 @@ looper<-function(x){
   setwd(startingdir)
   return(z3)
 }
-
+ 
 namer<-function(x,y){
   strainlist=read.csv(y)
   x$column=as.numeric(substring(as.character(x$well), 2, nchar(as.character(x$well))))
@@ -78,7 +78,7 @@ namer<-function(x,y){
   asNumeric <- function(x){as.numeric(as.character(x))}
   return(z2)
 }
-
+ 
 plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   startdir=getwd()
   setwd(x)
@@ -86,14 +86,14 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
 	strainlist=strainlist[which(strainlist$strain==y),]
   if(length(strainlist[,1])==0){return("strain not found")}
 	for(i in 1:length(strainlist[,1])){
-		singlehold=readonedir(paste("plate",sprintf("%02d", strainlist[i,]$run)))
+		singlehold=readonedir(paste("Plate",sprintf("%02d", strainlist[i,]$run)))
 		singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
 		singlehold$temperature=strainlist[i,]$temperature
 		d_ply(singlehold,.(well),plotter)
 	}
 	setwd(startdir)
 }
-
+ 
 plotter<-function(x,well,strain){
 	x=x[x$time!=0,]
 	x$od=1-x$od
@@ -101,11 +101,11 @@ plotter<-function(x,well,strain){
 	plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],"Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2),4))))
 	points(x$time,predict(workingfit,list(time=x$time)),pch=3,col=2)
 }
-
+ 
 #delete files from previous runs - deletes, otherwise makes it
 if(file.exists("grouped.csv")){file.remove("grouped.csv")}
 if(!file.exists("outputfits.csv")){write.csv(namer(looper(getwd()),"strainlist.csv"),file="outputfits.csv",row.names=F)}
-
+ 
 #read the csv in
 data<-read.csv("outputfits.csv")
 write.csv(compileall(data,0.1),file="grouped.csv",row.names=F)
@@ -117,9 +117,10 @@ shinyServer(function(input, output) {
 		for(i in 1:length(levels(data$factortemp))){
 			data2<-data[which(data$factortemp==levels(data$factortemp)[i]),]
 			dataclean <- data2[data2$residual<input$cutoff,]
-			plot(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,xlab="strain",ylab=as.character(input$variable),main=c(levels(data$factortemp)[i]," degrees"))}
+			if(input$ordered1==T){dataclean$strain<-factor(dataclean$strain,names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],dataclean$strain,median),ties.method="first"))))}
+			plot(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,xlab="",ylab=as.character(input$variable),main=c(levels(data$factortemp)[i]," degrees"),las=2)}
 	}, height = 1000, width = 1500)
-
+ 
 	output$table1 <- renderTable({
 		compileall(data,input$cutoff)
 	},digits=5)
@@ -129,7 +130,8 @@ shinyServer(function(input, output) {
 		for(i in 1:length(levels(data$factortemp))){
 			data2<-data[which(data$factortemp==levels(data$factortemp)[i]),]
 			dataclean <- data2[data2$residual<input$cutoff,]
-			plotmeans(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,n.label=F,barcol="black",connect=F,main=c(levels(data$factortemp)[i]," degrees"),xlab="Strain",ylab=as.character(input$variable),p=0.68)
+			if(input$ordered2==T){dataclean$strain<-factor(dataclean$strain,names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],dataclean$strain,mean),ties.method="first"))))}
+			plotmeans(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,n.label=F,barcol="black",connect=F,main=c(levels(data$factortemp)[i]," degrees"),xlab="",ylab=as.character(input$variable),p=0.68,par(las =2))
 			}
 	}, height = 1000, width = 1500)
 	
