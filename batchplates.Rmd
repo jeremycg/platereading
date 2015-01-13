@@ -1,12 +1,10 @@
 Batch plates with plyr
 ========================================================
 Attempt to make the batch plates faster and better with plyr
-
+This file is now deprecated - still here until documentation is updated.
 First check and load libraries
 ```{r libraries}
-libraries=c("nlstools","plyr","dplyr","reshape2")
-for(i in libraries){if(i %in% rownames(installed.packages()) == FALSE) {install.packages(i)}}
-lapply(libraries, require, character.only=T)
+library(platereading)
 ```
 
 define the equation we will fit

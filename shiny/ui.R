@@ -1,4 +1,4 @@
-library(shiny)
+library(platereading)
 
 startingdir=choose.dir()
 setwd(startingdir)
