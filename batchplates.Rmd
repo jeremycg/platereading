@@ -4,7 +4,7 @@ Attempt to make the batch plates faster and better with plyr
 
 First check and load libraries
 ```{r libraries}
-libraries=c("nlstools","plyr","dplyr")
+libraries=c("nlstools","plyr","dplyr","reshape2")
 for(i in libraries){if(i %in% rownames(installed.packages()) == FALSE) {install.packages(i)}}
 lapply(libraries, require, character.only=T)
 ```
@@ -12,58 +12,55 @@ lapply(libraries, require, character.only=T)
 define the equation we will fit
 ```{r init equation}
 
-buchworm= od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *   
-		log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
-		(time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0)
+buchworm= od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
+log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
+(time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0)
 ```
 
 First function - read one directory of plates into a flat file
 
 ```{r dirfunction}
 readonedir<-function(x){
-  startingdir=getwd()
-  setwd(x)
-  filelist<-list.files()  											
-	x3<-data.frame()															
-	for(y in 1:length(filelist)){		
-    time=strsplit(filelist[y],".c",fixed=T)[[1]][1]
+	startingdir=getwd()
+	setwd(x)
+	filelist<-list.files()
+	x3<-data.frame()
+	for(y in 1:length(filelist)){
+		time=strsplit(filelist[y],".c",fixed=T)[[1]][1]
 		x1=data.frame(stringsAsFactors = FALSE)
-    t=read.csv(filelist[y],header=TRUE,check.names=FALSE) 											
+		t=read.csv(filelist[y],header=TRUE,check.names=FALSE)
 		t=t[1:13]
-    for(zz in 2:length(t[1,])){
-      for(xx in 1:length(t[,1])){
-        x1=rbind(x1,data.frame(paste(t[xx,1],names(t)[zz],sep=""),t[xx,zz],time,x,stringsAsFactors = FALSE))
-        }
-      }
-    x3=rbind(x3,as.data.frame(x1))
-    }
-  setwd(startingdir)
-  names(x3)=c("well","od","time","plate")
-  x3$time=as.numeric(x3$time)
-  return(x3)
+		x1<-melt(t)
+		names(x1)<-c("column","row","od")
+		x1$well<-paste(x1$column,x1$row,sep="")
+		x1$time<-time
+		x3=rbind.fill(x3,as.data.frame(x1))
+	}
+	setwd(startingdir)
+	x3$time=as.numeric(x3$time)
+	x3$plate<-x
+	return(x3)
 }
 ```
 
 Now a couple of functions to fit the flat file
 ```{r fitfunction}
 fitbuch<-function(x,y=1){
-  x$od<-1-x$od
-  if(y==1){x=x[x$time!=0,]}
-  z=nls(buchworm,x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
-  z3=data.frame()
-  z3=rbind(z3,c(as.data.frame(t(coef(z))),sum(resid(z)^2),x$well[1],x$plate[1],as.numeric(strsplit(as.character(x$plate), split=' ', fixed=TRUE)[[1]][2])))
-  names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
-  return(z3)
+	x$od<-1-x$od
+	if(y==1){x=x[x$time!=0,]}
+	z=nls(buchworm,x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
+	z3=data.frame(t(matrix(coef(z))),sum(resid(z)^2),x$well[1],x$plate[1],as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]],1)))
+	names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
+	return(z3)
 }
 
 plyrfit<-function(x){
-  ddply(x,.(plate,well),function(df){fitbuch(df)})
+	ddply(x,.(plate,well),function(df){fitbuch(df)})
 }
 
-dplyrfit<-function(x){z=x %.%
-     group_by(plate, well) %.%
-     do(fitbuch)
-     return(do.call(rbind, z))
+dplyrfit<-function(x){x %>%
+	group_by(plate, well) %>%
+	do(fitbuch(.))
 }
 
 ```
@@ -72,15 +69,15 @@ loop it over a directory - directory must have all names as "plate xx" and one f
 
 ```{r looper}
 looper<-function(x){
-  startingdir=getwd()
-  z3=data.frame()
-  setwd(x)  			
-  dirlist=list.files()
-  for(zz in 1:(length(dirlist)-1)){
-    z3=rbind(z3,plyrfit(readonedir(dirlist[zz])))
-    }
-  setwd(startingdir)
-  return(z3)
+	startingdir=getwd()
+	z3=data.frame()
+	setwd(x)
+	dirlist=list.files()
+	for(zz in 1:(length(dirlist)-1)){
+		z3=rbind.fill(z3,plyrfit(readonedir(dirlist[zz])))
+	}
+	setwd(startingdir)
+	return(z3)
 }
 ```
 
@@ -88,12 +85,12 @@ next need to name them
 
 ```{r namer}
 namer<-function(x,y){
-  strainlist=read.csv(y)
-  x$column=as.numeric(substring(as.character(x$well), 2, nchar(as.character(x$well))))
-  x$row=substring(as.character(x$well), 1,1)
-  z2=merge(x, strainlist, by=c("run","column"))
-  asNumeric <- function(x){as.numeric(as.character(x))}
-  return(z2)
+	strainlist=read.csv(y)
+	x$column=as.numeric(substring(as.character(x$well), 2, nchar(as.character(x$well))))
+	x$row=substring(as.character(x$well), 1,1)
+	z2=merge(x, strainlist, by=c("run","column"))
+	asNumeric <- function(x){as.numeric(as.character(x))}
+	return(z2)
 }
 ```
 put it all together!
@@ -110,11 +107,11 @@ write.csv(x,file="outputfits.csv",row.names=F)
 make a dataframe with all the means and sds
 ```{r compile all}
 compileall<-function(x,y=0.1){
-  x=x[which(x$residual<y),]
-  z=ddply(x,.(strain,temperature),function(df){c(mean(df$lag),mean(df$mumax),mean(df$od0),mean(df$odmax),
-                                             sd(df$lag),sd(df$mumax),sd(df$od0),sd(df$odmax),length(df$lag))})
-  names(z)=c("strain","temperature","lag","mumax","od0","odmax","sdlag","sdmumax","sdod0","sdodmax","N")
-  return(z)
+	x=x[which(x$residual<y),]
+	z=ddply(x,.(strain,temperature),function(df){c(mean(df$lag),mean(df$mumax),mean(df$od0),mean(df$odmax),
+		sd(df$lag),sd(df$mumax),sd(df$od0),sd(df$odmax),length(df$lag))})
+		names(z)=c("strain","temperature","lag","mumax","od0","odmax","sdlag","sdmumax","sdod0","sdodmax","N")
+		return(z)
 }
 ```
 
@@ -126,11 +123,11 @@ write.csv(y,file="grouped.csv",row.names=F)
 Now some plots to check the residual cut offs
 ```{r plot by strain}
 plotlots<-function(x,y,z){ #function of directory, strain, strainlist
-  startdir=getwd()
-  setwd(x)
+	startdir=getwd()
+	setwd(x)
 	strainlist=read.csv(z)
 	strainlist=strainlist[which(strainlist$strain==y),]
-  if(length(strainlist[,1])==0){return("strain not found")}
+	if(length(strainlist[,1])==0){return("strain not found")}
 	for(i in 1:length(strainlist[,1])){
 		singlehold=readonedir(paste("plate",sprintf("%02d", strainlist[i,]$run)))
 		singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
@@ -142,7 +139,7 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
 
 
 plotter<-function(x,well,strain){
-  x=x[x$time!=0,]
+	x=x[x$time!=0,]
 	x$od=1-x$od
 	workingfit<-nls(buchworm, x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
 	plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],"Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2),4))))
