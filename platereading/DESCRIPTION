@@ -1,0 +1,14 @@
+Package: platereading
+Title: reads and fits curves to bioanalyser plates
+Version: 0.1
+Authors@R: "Jeremy Gray <jeremycgray@gmail.com> [aut, cre]"
+Description: reads and fits curves to bioanalyser plates
+Depends:
+    nlstools,
+    plyr,
+    dplyr,
+    reshape2,
+    shiny,
+    gplots
+License: MIT
+LazyData: true
