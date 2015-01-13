@@ -30,7 +30,7 @@ readonedir<-function(x){
     x1=data.frame(stringsAsFactors = FALSE)
     t=read.csv(filelist[y],header=TRUE,check.names=FALSE)
     t=t[1:13]
-    x1<-melt(t)
+    x1<-melt(t,id.vars="")
     names(x1)<-c("column","row","od")
     x1$well<-paste(x1$column,x1$row,sep="")
     x1$time<-time
