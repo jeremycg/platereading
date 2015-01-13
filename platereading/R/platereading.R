@@ -12,7 +12,7 @@ readonedir<-function(x){
   filelist<-list.files()
   x3<-data.frame()
   for(y in 1:length(filelist)){
-    time=strsplit(filelist[y],".c",fixed=T)[[1]][1]
+    time=strsplit(filelist[y],".csv",fixed=T)[[1]]
     x1=data.frame(stringsAsFactors = FALSE)
     t=read.csv(filelist[y],header=TRUE,check.names=FALSE)
     t=t[1:13]
@@ -60,7 +60,7 @@ looper<-function(x){
   setwd(x)
   dirlist=list.files()
   for(zz in 1:(length(dirlist)-1)){
-    z3=rbind.fill(z3,plyrfit(readonedir(dirlist[zz])))
+    z3=rbind.fill(z3,dplyrfit(readonedir(dirlist[zz])))
   }
   setwd(startingdir)
   return(z3)
