@@ -15,6 +15,7 @@ The main core of the project is now a package. To install, run:
 ```R
 # install.packages("devtools")
 devtools::install_github("jeremycg/platereading/platereading")
+library(platereading)
 ```
 
 The batchplates.Rmd contains a step by step walkthrough of the process - it is now deprecated as most functions are in the package.
