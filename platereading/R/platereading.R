@@ -35,7 +35,8 @@ fitbuch<-function(x,y=1){
   x$od<-1-x$od
   if(y==1){x=x[x$time!=0,]}
   z=nls(buchworm,x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
-  z3=data.frame(t(matrix(coef(z))),sum(resid(z)^2),x$well[1],x$plate[1],as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]],1)))
+  z3=data.frame(t(matrix(coef(z))),sum(resid(z)^2),x$well[1],
+    x$plate[1],as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]],1)))
   names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
   return(z3)
 }
@@ -120,7 +121,8 @@ plotter<-function(x,well,strain){
   x=x[x$time!=0,]
   x$od=1-x$od
   workingfit<-nls(buchworm, x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
-  plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],"Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2),4))))
+  plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],
+    "Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2),4))))
   points(x$time,predict(workingfit,list(time=x$time)),pch=3,col=2)
 }
 
@@ -130,60 +132,76 @@ plateshiny <- function(directory) {
   setwd(directory)
   strainlist<-read.csv("strainlist.csv")
   stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
-  if(!file.exists("outputfits.csv")){write.csv(namer(looper(getwd()),"strainlist.csv"),file="outputfits.csv",row.names=F)}
+  if(!file.exists("outputfits.csv")){
+    write.csv(namer(looper(getwd()),"strainlist.csv"),file="outputfits.csv",row.names=F)}
   data<-read.csv("outputfits.csv")
   data$factortemp=as.factor(data$temperature)
   shinyApp(
     ui = pageWithSidebar(
         headerPanel("Plate Analysis"),
         sidebarPanel(
-          sliderInput("cutoff",
-          "cutoff of residuals:",
-          min = 0.0,
-          max = 1.0,
-          value = 0.5,step=0.001,ticks=T),
+          sliderInput("cutoff","cutoff of residuals:",min = 0.0,
+            max = 1.0,value = 0.5,step=0.001,ticks=T),
           selectInput("variable", "Choose a variable:",
-          choices = c("mumax","lag","od0","odmax")),
-          selectInput("query", "Strain:",
-          levels(strainlist$strain))
-          ),
-          mainPanel(
-            tabsetPanel(
-              tabPanel("BoxPlots",checkboxInput("ordered1", "Ordered?", value = FALSE), plotOutput("Plot1",height="100%")),
-              tabPanel("Table", tableOutput("table1"),tableOutput("table2")),
-              tabPanel("Mean and sd",checkboxInput("ordered2", "Ordered?", value = FALSE), plotOutput("Plot3",height="100%")),
-              tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%"))
-              )
-              )
-              ),
+            choices = c("mumax","lag","od0","odmax")),
+          selectInput("query", "Strain:",levels(strainlist$strain))
+        ),
+        mainPanel(
+          tabsetPanel(
+            tabPanel("BoxPlots",checkboxInput("ordered1",
+              "Ordered?", value = FALSE), plotOutput("Plot1",height="100%")),
+            tabPanel("Table", tableOutput("table1"),tableOutput("table2")),
+            tabPanel("Mean and sd",checkboxInput("ordered2",
+              "Ordered?", value = FALSE), plotOutput("Plot3",height="100%")),
+            tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%"))
+          )
+        )
+    ),
     server = function(input, output) {
+      on.exit(setwd(startingdir))
       output$Plot1 <- renderPlot({
         par(mfrow=c(length(levels(data$factortemp)),1))
         for(i in 1:length(levels(data$factortemp))){
           data2<-data[which(data$factortemp==levels(data$factortemp)[i]),]
           dataclean <- data2[data2$residual<input$cutoff,]
-          if(input$ordered1==T){dataclean$strain<-factor(dataclean$strain,names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],dataclean$strain,median),ties.method="first"))))}
-          plot(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,xlab="",ylab=as.character(input$variable),main=c(levels(data$factortemp)[i]," degrees"),las=2)}
-          }, height = 1000, width = 1500)
-
-          output$table1 <- renderTable({
-            compileall(data,input$cutoff)
-            },digits=5)
-
-            output$Plot3 <- renderPlot({
-              par(mfrow=c(length(levels(data$factortemp)),1))
-              for(i in 1:length(levels(data$factortemp))){
-                data2<-data[which(data$factortemp==levels(data$factortemp)[i]),]
-                dataclean <- data2[data2$residual<input$cutoff,]
-                if(input$ordered2==T){dataclean$strain<-factor(dataclean$strain,names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],dataclean$strain,mean),ties.method="first"))))}
-                plotmeans(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,n.label=F,barcol="black",connect=F,main=c(levels(data$factortemp)[i]," degrees"),xlab="",ylab=as.character(input$variable),p=0.68,par(las =2))
-              }
-              }, height = 1000, width = 1500)
-
-              output$Plotfitted <- renderPlot(height = reactive({length(strainlist[strainlist$strain==input$query,]$run)*3000}), units="px",{
-                par(mfrow=c(length(strainlist[strainlist$strain==input$query,]$run)*8,1))
-                plotlots(startingdir,input$query,"strainlist.csv")
-                })
-                }
+          if(input$ordered1==T){
+            dataclean$strain<-factor(dataclean$strain,
+              names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],
+              dataclean$strain,median),ties.method="first")))
+            )
+          }
+          plot(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,
+            xlab="",ylab=as.character(input$variable),
+            main=c(levels(data$factortemp)[i]," degrees"),las=2)
+        }
+      }, height = 1000, width = 1500)
+      output$table1 <- renderTable({
+        compileall(data,input$cutoff)
+      },digits=5)
+      output$Plot3 <- renderPlot({
+        par(mfrow=c(length(levels(data$factortemp)),1))
+        for(i in 1:length(levels(data$factortemp))){
+          data2<-data[which(data$factortemp==levels(data$factortemp)[i]),]
+          dataclean <- data2[data2$residual<input$cutoff,]
+          if(input$ordered2==T){
+            dataclean$strain<-factor(dataclean$strain,
+              names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],
+                dataclean$strain,mean),ties.method="first"))))
+          }
+          plotmeans(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,
+            n.label=F,barcol="black",connect=F,
+            main=c(levels(data$factortemp)[i]," degrees"),xlab="",
+            ylab=as.character(input$variable),p=0.68,par(las =2)
           )
+        }
+      }, height = 1000, width = 1500)
+      output$Plotfitted<-renderPlot(
+        height=reactive({length(strainlist[strainlist$strain==input$query,]$run)*3000}),
+        units="px",{
+          par(mfrow=c(length(strainlist[strainlist$strain==input$query,]$run)*8,1))
+          plotlots(directory,input$query,"strainlist.csv")
+        }
+      )
+    }
+  )
 }
