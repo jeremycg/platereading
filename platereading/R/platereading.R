@@ -1,11 +1,15 @@
 
 #define the equation we will fit
-buchworm= od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
+buchworm <- od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
 log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
 (time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0)
 
 
-#First function - read one directory of plates into a flat file
+#' Read in a single plate directory of data
+#'
+#' @param x A Directory containing one plate run
+#' @return A dataframe containing the data sorted by well and time
+
 readonedir<-function(x){
   startingdir=getwd()
   setwd(x)
@@ -29,7 +33,11 @@ readonedir<-function(x){
 }
 
 
-#a couple of functions to fit the flat file
+#' Fit a single directory of data (output by readonedir) with the buch function
+#'
+#' @param x A Dataframe produced by readonedir
+#' @param y an indication of whether to omit t=0 or not, defaults to 1, remove
+#' @return A dataframe containing the fitted data
 
 fitbuch<-function(x,y=1){
   x$od<-1-x$od
@@ -41,10 +49,18 @@ fitbuch<-function(x,y=1){
   return(z3)
 }
 
+#' Fit multiple directories of data (output by readonedir) with the buch function
+#'
+#' @param x A Dataframe produced by outputs of readonedir
+#' @return A dataframe containing the fitted data
 plyrfit<-function(x){
   ddply(x,.(plate,well),function(df){fitbuch(df)})
 }
 
+#' Fit multiple directories of data (output by readonedir) with the buch function
+#'
+#' @param x A Dataframe produced by outputs of readonedir
+#' @return A dataframe containing the fitted data
 dplyrfit<-function(x){x %>%
   group_by(plate, well) %>%
   do(fitbuch(.))
@@ -52,8 +68,10 @@ dplyrfit<-function(x){x %>%
 
 
 
-#loop it over a directory - directory must have all names as "plate xx" and one file strainlist.csv
-
+#' Read in a directory containing multiple plates of data
+#'
+#' @param x A Directory containing all data and required outputfiles
+#' @return A dataframe containing the data fit and sorted by well
 
 looper<-function(x){
   startingdir=getwd()
@@ -68,8 +86,11 @@ looper<-function(x){
 }
 
 
-#next need to name them
-
+#' Name output from a directory containing multiple plates of data
+#'
+#' @param x A dataframe containing the output of the looper function
+#' @param y A file containing all names of wells in plates
+#' @return A dataframe containing the data fit and sorted by well
 
 namer<-function(x,y){
   strainlist=read.csv(y)
@@ -87,8 +108,11 @@ namer<-function(x,y){
 #x=namer(looper(getwd()),"strainlist.csv")
 
 
-#make a dataframe with all the means and sds
-
+#' Filter a data frame by residuals, and combine passing values into means and sds
+#'
+#' @param x A dataframe containing the named output of the looper function
+#' @param y A residual cutoff, defaults to 0.01
+#' @return A dataframe containing the data filtered and summarised
 compileall<-function(x,y=0.01){
   x=x[which(x$residual<y),]
   z=ddply(x,.(strain,temperature),function(df){c(mean(df$lag),mean(df$mumax),mean(df$od0),mean(df$odmax),
@@ -99,8 +123,13 @@ compileall<-function(x,y=0.01){
 
 
 
-#Now some plots to check the residual cut offs
 
+#' Plot all representatives of a strain with their fits and residuals
+#'
+#' @param x A directory containing multiple plate runs
+#' @param y A strain to plot out
+#' @param z The file containing strain names
+#' @return plots of each well of the required strain
 plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   startdir=getwd()
   setwd(x)
@@ -116,8 +145,13 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   setwd(startdir)
 }
 
+#' Plot a single well with its fit
+#'
+#' @param x dataframe containing runs
+#' @param well the well to choose
 
-plotter<-function(x,well,strain){
+#' @return plots of the well
+plotter<-function(x,well){
   x=x[x$time!=0,]
   x$od=1-x$od
   workingfit<-nls(buchworm, x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
@@ -126,7 +160,11 @@ plotter<-function(x,well,strain){
   points(x$time,predict(workingfit,list(time=x$time)),pch=3,col=2)
 }
 
+#' A shiny app for interactive production of plots and outputs
+#'
+#' @param directory the directory containing data and strain names
 
+#' @return a shiny app
 plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)
