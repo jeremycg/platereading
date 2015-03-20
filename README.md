@@ -1,6 +1,8 @@
 #platereading
 ============
 
+[![Travis-CI Build Status](https://travis-ci.org/jeremycg/platereading.png?branch=master)](https://travis-ci.org/jeremycg/platereading)
+
 r package for reading plates off a bioanalyser to give curve parameters as an output.
 Plates are fit to the buchanan curve by nls (there will be bad fits) and the parameters output for further analysis.
 
