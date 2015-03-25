@@ -3,7 +3,7 @@
 \docType{data}
 \name{buchworm}
 \alias{buchworm}
-\title{The Buchanan model for three pahse growth}
+\title{The Buchanan model for three phase growth}
 \format{an equation, with od modelled as a response of od0, lag, mumax and odmax}
 \usage{
 buchworm

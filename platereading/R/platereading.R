@@ -1,5 +1,5 @@
 
-#' The Buchanan model for three pahse growth
+#' The Buchanan model for three phase growth
 #'
 #' The model as described by	Buchanan, R. L., Whiting, R. C. & Damert,
 #' W. C. 1997 When is simple good enough: A comparison of the Gompertz, Baranyi,
