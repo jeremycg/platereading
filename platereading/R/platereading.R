@@ -4,7 +4,7 @@
 #' The model as described by	Buchanan, R. L., Whiting, R. C. & Damert,
 #' W. C. 1997 When is simple good enough: A comparison of the Gompertz, Baranyi,
 #' and three-phase linear models for fitting bacterial growth curves.
-#' Food Microbiol. 14, 313–326.
+#' Food Microbiol. 14, 313-326.
 #' @usage buchworm
 #' @format an equation, with od modelled as a response of od0, lag, mumax and odmax
 buchworm <- as.formula(od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
