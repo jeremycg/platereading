@@ -1,8 +1,12 @@
 
-#define the equation we will fit
-buchworm <- od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
+#' The Buchanan model, paramterised for worms
+#'
+#' The model as described by Buchanan et al (1997) -
+#' When is simple good enough: a comparison of the Gompertz, Baranyi, and three-phase linear models for fitting bacterial growth curves.
+#' @usage buchworm
+buchworm <- as.formula(od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
 log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
-(time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0)
+(time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0))
 
 
 #' Read in a single plate directory of data
