@@ -16,6 +16,7 @@ log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
 #'
 #' @param x A Directory containing one plate run
 #' @return A dataframe containing the data sorted by well and time
+#' @importFrom reshape2 melt
 
 readonedir<-function(x){
   startingdir=getwd()
@@ -60,6 +61,7 @@ fitbuch<-function(x,y=1){
 #'
 #' @param x A Dataframe produced by outputs of readonedir
 #' @return A dataframe containing the fitted data
+#' @importFrom plyr ddply
 plyrfit<-function(x){
   ddply(x,.(plate,well),function(df){fitbuch(df)})
 }
@@ -68,6 +70,9 @@ plyrfit<-function(x){
 #'
 #' @param x A Dataframe produced by outputs of readonedir
 #' @return A dataframe containing the fitted data
+#' @importFrom magrittr "%>%"
+#' @importFrom dplyr group_by
+#' @importFrom dplyr do
 dplyrfit<-function(x){x %>%
   group_by(plate, well) %>%
   do(fitbuch(.))
@@ -120,6 +125,7 @@ namer<-function(x,y){
 #' @param x A dataframe containing the named output of the looper function
 #' @param y A residual cutoff, defaults to 0.01
 #' @return A dataframe containing the data filtered and summarised
+#' @importFrom plyr ddply
 compileall<-function(x,y=0.01){
   x=x[which(x$residual<y),]
   z=ddply(x,.(strain,temperature),function(df){c(mean(df$lag),mean(df$mumax),mean(df$od0),mean(df$odmax),
@@ -137,6 +143,7 @@ compileall<-function(x,y=0.01){
 #' @param y A strain to plot out
 #' @param z The file containing strain names
 #' @return plots of each well of the required strain
+#' @importFrom plyr d_ply
 plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   startdir=getwd()
   setwd(x)
@@ -172,6 +179,8 @@ plotter<-function(x,well){
 #' @param directory the directory containing data and strain names
 
 #' @return a shiny app
+#' @importFrom shiny shinyApp
+#' @importFrom gplots plotmeans
 plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)

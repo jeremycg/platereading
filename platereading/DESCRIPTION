@@ -4,11 +4,11 @@ Version: 0.1
 Authors@R: "Jeremy Gray <jeremycgray@gmail.com> [aut, cre]"
 Description: reads and fits curves to bioanalyser plates
 Imports:
-    nlstools,
     plyr,
     dplyr,
     reshape2,
     shiny,
-    gplots
+    gplots,
+    magrittr
 License: MIT
 LazyData: true
