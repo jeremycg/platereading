@@ -3,6 +3,8 @@ Title: reads and fits curves to bioanalyser plates
 Version: 0.1
 Authors@R: "Jeremy Gray <jeremycgray@gmail.com> [aut, cre]"
 Description: reads and fits curves to bioanalyser plates
+Depends:
+    shiny
 Imports:
     plyr,
     dplyr,
@@ -10,5 +12,5 @@ Imports:
     shiny,
     gplots,
     magrittr
-License: MIT
+License: MIT + file LICENSE
 LazyData: true

@@ -183,7 +183,6 @@ plotter<-function(x,well){
 #' @param directory the directory containing data and strain names
 
 #' @return a shiny app
-#' @importFrom shiny shinyApp
 #' @importFrom gplots plotmeans
 plateshiny <- function(directory) {
   startingdir<-getwd()
