@@ -1,3 +1,6 @@
+#a hideous hack to allow me to use ggplot2  and dplyr in this package, and not destroy R CMD check
+#see http://stackoverflow.com/a/12429344/3760920 for details
+utils::globalVariables(c("well","plate","strain","temperature"))
 
 #' The Buchanan model for three phase growth
 #'
@@ -181,9 +184,11 @@ plotter<-function(x,well){
 #' A shiny app for interactive production of plots and outputs
 #'
 #' @param directory the directory containing data and strain names
-
 #' @return a shiny app
 #' @importFrom gplots plotmeans
+#' @importFrom shiny shinyApp pageWithSidebar headerPanel sidebarPanel sliderInput
+#' @importFrom shiny selectInput mainPanel tabsetPanel tabPanel renderPlot reactive
+#' @importFrom shiny checkboxInput plotOutput tableOutput renderTable
 plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)
