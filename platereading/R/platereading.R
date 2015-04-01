@@ -87,6 +87,7 @@ dplyrfit<-function(x){x %>%
 
 #' Read in a directory containing multiple plates of data
 #'
+#' @export
 #' @param x A Directory containing all data and required outputfiles
 #' @return A dataframe containing the data fit and sorted by well
 #' @importFrom plyr rbind.fill
@@ -106,6 +107,7 @@ looper<-function(x){
 #' Name output from a directory containing multiple plates of data
 #'
 #' @param x A dataframe containing the output of the looper function
+#' @export
 #' @param y A file containing all names of wells in plates
 #' @return A dataframe containing the data fit and sorted by well
 
@@ -170,7 +172,7 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
 #'
 #' @param x dataframe containing runs
 #' @param well the well to choose
-
+#' @export
 #' @return plots of the well
 plotter<-function(x,well){
   x=x[x$time!=0,]
@@ -185,6 +187,7 @@ plotter<-function(x,well){
 #'
 #' @param directory the directory containing data and strain names
 #' @return a shiny app
+#' @export
 #' @importFrom gplots plotmeans
 #' @importFrom shiny shinyApp pageWithSidebar headerPanel sidebarPanel sliderInput
 #' @importFrom shiny selectInput mainPanel tabsetPanel tabPanel renderPlot reactive
