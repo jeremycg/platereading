@@ -162,7 +162,7 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   strainlist=strainlist[which(strainlist$strain==y),]
   if(length(strainlist[,1])==0){return("strain not found")}
   for(i in 1:length(strainlist[,1])){
-    singlehold=readonedir(paste("plate",sprintf("%02d", strainlist[i,]$run)))
+    singlehold=readonedir(paste("Plate",sprintf("%02d", strainlist[i,]$run)))
     singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
     singlehold$temperature=strainlist[i,]$temperature
     d_ply(singlehold,.(well),plotter)
