@@ -23,7 +23,7 @@ log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
 #' @importFrom plyr rbind.fill
 readonedir<-function(x){
   startingdir=getwd()
-  setwd(paste("./",x,sep="")
+  setwd(paste("./",x,sep=""))
   filelist<-list.files()
   x3<-data.frame()
   for(y in 1:length(filelist)){
