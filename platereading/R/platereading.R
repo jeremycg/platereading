@@ -134,6 +134,7 @@ namer<-function(x,y){
 #' @return A dataframe containing the data filtered and summarised
 #' @importFrom plyr ddply
 #' @importFrom plyr "."
+#' @export
 compileall<-function(x,y=0.01){
   x=x[which(x$residual<y),]
   z=ddply(x,.(strain,temperature),function(df){c(mean(df$lag),mean(df$mumax),mean(df$od0),mean(df$odmax),
@@ -153,6 +154,7 @@ compileall<-function(x,y=0.01){
 #' @return plots of each well of the required strain
 #' @importFrom plyr d_ply
 #' @importFrom plyr "."
+#' @export
 plotlots<-function(x,y,z){ #function of directory, strain, strainlist
   startdir=getwd()
   setwd(x)
