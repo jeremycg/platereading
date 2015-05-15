@@ -4,15 +4,15 @@ utils::globalVariables(c("well","plate","strain","temperature"))
 
 #' The Buchanan model for three phase growth
 #'
-#' The model as described by	Buchanan, R. L., Whiting, R. C. & Damert,
+#' The model as described by  Buchanan, R. L., Whiting, R. C. & Damert,
 #' W. C. 1997 When is simple good enough: A comparison of the Gompertz, Baranyi,
 #' and three-phase linear models for fitting bacterial growth curves.
 #' Food Microbiol. 14, 313-326.
 #' @usage buchworm
 #' @format an equation, with od modelled as a response of od0, lag, mumax and odmax
 buchworm <- as.formula(od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
-log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
-(time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0))
+                                                              log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
+                         (time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0))
 
 
 #' Read in a single plate directory of data
@@ -53,9 +53,15 @@ readonedir<-function(x){
 fitbuch<-function(x,y=1){
   x$od<-1-x$od
   if(y==1){x=x[x$time!=0,]}
-  z=nls(buchworm,x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
+  z<-NULL
+  try(z<-nls(buchworm,x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T)))
+  if(is.null(z)){
+    z3<-data.frame(t(rep(NA,8)))
+    names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
+    return(z3)
+  }
   z3=data.frame(t(matrix(coef(z))),sum(resid(z)^2)/nrow(x),x$well[1],
-    x$plate[1],as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]],1)))
+                x$plate[1],as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]],1)))
   names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
   return(z3)
 }
@@ -79,8 +85,8 @@ plyrfit<-function(x){
 #' @importFrom dplyr do
 #' @importFrom plyr "."
 dplyrfit<-function(x){x %>%
-  group_by(plate, well) %>%
-  do(fitbuch(.))
+                        group_by(plate, well) %>%
+                        do(fitbuch(.))
 }
 
 
@@ -138,9 +144,9 @@ namer<-function(x,y){
 compileall<-function(x,y=0.01){
   x=x[which(x$residual<y),]
   z=ddply(x,.(strain,temperature),function(df){c(mean(df$lag),mean(df$mumax),mean(df$od0),mean(df$odmax),
-    sd(df$lag),sd(df$mumax),sd(df$od0),sd(df$odmax),length(df$lag))})
-    names(z)=c("strain","temperature","lag","mumax","od0","odmax","sdlag","sdmumax","sdod0","sdodmax","N")
-    return(z)
+                                                 sd(df$lag),sd(df$mumax),sd(df$od0),sd(df$odmax),length(df$lag))})
+  names(z)=c("strain","temperature","lag","mumax","od0","odmax","sdlag","sdmumax","sdod0","sdodmax","N")
+  return(z)
 }
 
 
@@ -181,7 +187,7 @@ plotter<-function(x,well){
   x$od=1-x$od
   workingfit<-nls(buchworm, x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
   plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],
-    "Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2)/nrow(x),4))))
+                                                       "Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2)/nrow(x),4))))
   points(x$time,predict(workingfit,list(time=x$time)),pch=3,col=2)
 }
 
@@ -205,24 +211,24 @@ plateshiny <- function(directory) {
   data$factortemp=as.factor(data$temperature)
   shinyApp(
     ui = pageWithSidebar(
-        headerPanel("Plate Analysis"),
-        sidebarPanel(
-          sliderInput("cutoff","cutoff of residuals:",min = 0.0,
-            max = 1.0,value = 0.5,step=0.001,ticks=T),
-          selectInput("variable", "Choose a variable:",
-            choices = c("mumax","lag","od0","odmax")),
-          selectInput("query", "Strain:",levels(strainlist$strain))
-        ),
-        mainPanel(
-          tabsetPanel(
-            tabPanel("BoxPlots",checkboxInput("ordered1",
-              "Ordered?", value = FALSE), plotOutput("Plot1",height="100%")),
-            tabPanel("Table", tableOutput("table1"),tableOutput("table2")),
-            tabPanel("Mean and sd",checkboxInput("ordered2",
-              "Ordered?", value = FALSE), plotOutput("Plot3",height="100%")),
-            tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%"))
-          )
+      headerPanel("Plate Analysis"),
+      sidebarPanel(
+        sliderInput("cutoff","cutoff of residuals:",min = 0.0,
+                    max = 1.0,value = 0.5,step=0.001,ticks=T),
+        selectInput("variable", "Choose a variable:",
+                    choices = c("mumax","lag","od0","odmax")),
+        selectInput("query", "Strain:",levels(strainlist$strain))
+      ),
+      mainPanel(
+        tabsetPanel(
+          tabPanel("BoxPlots",checkboxInput("ordered1",
+                                            "Ordered?", value = FALSE), plotOutput("Plot1",height="100%")),
+          tabPanel("Table", tableOutput("table1"),tableOutput("table2")),
+          tabPanel("Mean and sd",checkboxInput("ordered2",
+                                               "Ordered?", value = FALSE), plotOutput("Plot3",height="100%")),
+          tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%"))
         )
+      )
     ),
     server = function(input, output) {
       on.exit(setwd(startingdir))
@@ -233,13 +239,13 @@ plateshiny <- function(directory) {
           dataclean <- data2[data2$residual<input$cutoff,]
           if(input$ordered1==T){
             dataclean$strain<-factor(dataclean$strain,
-              names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],
-              dataclean$strain,median),ties.method="first")))
+                                     names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],
+                                                            dataclean$strain,median),ties.method="first")))
             )
           }
           plot(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,
-            xlab="",ylab=as.character(input$variable),
-            main=c(levels(data$factortemp)[i]," degrees"),las=2)
+               xlab="",ylab=as.character(input$variable),
+               main=c(levels(data$factortemp)[i]," degrees"),las=2)
         }
       }, height = 1000, width = 1500)
       output$table1 <- renderTable({
@@ -252,13 +258,13 @@ plateshiny <- function(directory) {
           dataclean <- data2[data2$residual<input$cutoff,]
           if(input$ordered2==T){
             dataclean$strain<-factor(dataclean$strain,
-              names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],
-                dataclean$strain,mean),ties.method="first"))))
+                                     names(sort(rank(tapply(subset(dataclean,select=input$variable)[,1],
+                                                            dataclean$strain,mean),ties.method="first"))))
           }
           plotmeans(dataclean[,which(names(dataclean)==input$variable)]~dataclean$strain,
-            n.label=F,barcol="black",connect=F,
-            main=c(levels(data$factortemp)[i]," degrees"),xlab="",
-            ylab=as.character(input$variable),p=0.68,par(las =2)
+                    n.label=F,barcol="black",connect=F,
+                    main=c(levels(data$factortemp)[i]," degrees"),xlab="",
+                    ylab=as.character(input$variable),p=0.68,par(las =2)
           )
         }
       }, height = 1000, width = 1500)
