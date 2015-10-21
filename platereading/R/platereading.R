@@ -50,11 +50,11 @@ readonedir<-function(x){
 #' @param y an indication of whether to omit t=0 or not, defaults to 1, remove
 #' @return A dataframe containing the fitted data
 
-fitbuch<-function(x,y=1){
+fitbuch<-function(x,y=1, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
   x$od<-1-x$od
   if(y==1){x=x[x$time!=0,]}
   z<-NULL
-  try(z<-nls(buchworm,x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T)))
+  try(z<-nls(buchworm,x,list(lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1),control=nls.control(minFactor=1/4096,warnOnly=T)))
   if(is.null(z)){
     z3<-data.frame(t(rep(NA,8)))
     names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
@@ -72,8 +72,8 @@ fitbuch<-function(x,y=1){
 #' @return A dataframe containing the fitted data
 #' @importFrom plyr ddply
 #' @importFrom plyr "."
-plyrfit<-function(x){
-  ddply(x,.(plate,well),function(df){fitbuch(df)})
+plyrfit<-function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
+  ddply(x,.(plate,well),function(df){fitbuch(df, lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1)})
 }
 
 #' Fit multiple directories of data (output by readonedir) with the buch function
@@ -84,9 +84,9 @@ plyrfit<-function(x){
 #' @importFrom dplyr group_by
 #' @importFrom dplyr do
 #' @importFrom plyr "."
-dplyrfit<-function(x){x %>%
+dplyrfit<-function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){x %>%
                         group_by(plate, well) %>%
-                        do(fitbuch(.))
+                        do(fitbuch(., lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1))
 }
 
 
@@ -97,13 +97,13 @@ dplyrfit<-function(x){x %>%
 #' @param x A Directory containing all data and required outputfiles
 #' @return A dataframe containing the data fit and sorted by well
 #' @importFrom plyr rbind.fill
-looper<-function(x){
+looper<-function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
   startingdir=getwd()
   z3=data.frame()
   setwd(x)
   dirlist=list.files()
   for(zz in 1:(length(dirlist)-1)){
-    z3=rbind.fill(z3,dplyrfit(readonedir(dirlist[zz])))
+    z3=rbind.fill(z3,dplyrfit(readonedir(dirlist[zz]), lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1))
   }
   setwd(startingdir)
   return(z3)
@@ -161,7 +161,7 @@ compileall<-function(x,y=0.01){
 #' @importFrom plyr d_ply
 #' @importFrom plyr "."
 #' @export
-plotlots<-function(x,y,z){ #function of directory, strain, strainlist
+plotlots<-function(x,y,z, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){ #function of directory, strain, strainlist
   startdir=getwd()
   setwd(x)
   strainlist=read.csv(z)
@@ -171,7 +171,7 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
     singlehold=readonedir(paste("Plate",sprintf("%02d", strainlist[i,]$run)))
     singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
     singlehold$temperature=strainlist[i,]$temperature
-    d_ply(singlehold,.(well),plotter)
+    d_ply(singlehold,.(well),plotter,lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1)
   }
   setwd(startdir)
 }
@@ -182,10 +182,10 @@ plotlots<-function(x,y,z){ #function of directory, strain, strainlist
 #' @param well the well to choose
 #' @export
 #' @return plots of the well
-plotter<-function(x,well){
+plotter<-function(x,well, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
   x=x[x$time!=0,]
   x$od=1-x$od
-  workingfit<-nls(buchworm, x,list(lag=35, mumax=0.025, od0 = 0.25, odmax = 0.95),control=nls.control(minFactor=1/4096,warnOnly=T))
+  workingfit<-nls(buchworm, x,list(lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1),control=nls.control(minFactor=1/4096,warnOnly=T))
   plot(x$od~x$time,ylab="od",xlab="hours",main=c(paste("Plate:", x$plate[1],
                                                        "Temp:", x$temperature[1],"Well",x$well[1],"Residual:",round(sum(resid(workingfit)^2)/nrow(x),4))))
   points(x$time,predict(workingfit,list(time=x$time)),pch=3,col=2)
@@ -206,7 +206,9 @@ plateshiny <- function(directory) {
   strainlist<-read.csv("strainlist.csv")
   stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
   if(!file.exists("outputfits.csv")){
-    write.csv(namer(looper(getwd()),"strainlist.csv"),file="outputfits.csv",row.names=F)}
+    write.csv(namer(looper(getwd(), lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95),"strainlist.csv"),file="outputfits.csv",row.names=F)}
+  on.exit(if(!file.exists("outputfits.csv")){
+    write.csv(namer(looper(getwd(), lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax),"strainlist.csv"),file="outputfits.csv",row.names=F)})
   data<-read.csv("outputfits.csv")
   data$factortemp=as.factor(data$temperature)
   shinyApp(
@@ -217,7 +219,16 @@ plateshiny <- function(directory) {
                     max = 1.0,value = 0.5,step=0.001,ticks=T),
         selectInput("variable", "Choose a variable:",
                     choices = c("mumax","lag","od0","odmax")),
-        selectInput("query", "Strain:",levels(strainlist$strain))
+        selectInput("query", "Strain:",levels(strainlist$strain)),
+        sliderInput("initialmumax","initialmumax",min = -5.0,
+                    max = 5.0,value = 0.025,step=0.001,ticks=T)
+        sliderInput("initiallag","initial lag:",min = -20.0,
+                    max = 150,value = 35,step=0.5,ticks=T),
+        sliderInput("initialod0","initialod0:",min = -1.0,
+                                max = 1.0,value = 0,step=0.001,ticks=T)
+        sliderInput("initialodmax","initialodmax:",min = 0.0,
+                                max = 2.0,value = 0.95,step=0.001,ticks=T)
+
       ),
       mainPanel(
         tabsetPanel(
@@ -272,7 +283,7 @@ plateshiny <- function(directory) {
         height=reactive({length(strainlist[strainlist$strain==input$query,]$run)*3000}),
         units="px",{
           par(mfrow=c(length(strainlist[strainlist$strain==input$query,]$run)*8,1))
-          plotlots(directory,input$query,"strainlist.csv")
+          plotlots(directory,input$query,"strainlist.csv", lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax)
         }
       )
     }
