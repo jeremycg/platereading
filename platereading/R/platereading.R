@@ -221,7 +221,7 @@ plateshiny <- function(directory) {
                     choices = c("mumax","lag","od0","odmax")),
         selectInput("query", "Strain:",levels(strainlist$strain)),
         sliderInput("initialmumax","initialmumax",min = -5.0,
-                    max = 5.0,value = 0.025,step=0.001,ticks=T)
+                    max = 5.0,value = 0.025,step=0.001,ticks=T),
         sliderInput("initiallag","initial lag:",min = -20.0,
                     max = 150,value = 35,step=0.5,ticks=T),
         sliderInput("initialod0","initialod0:",min = -1.0,
