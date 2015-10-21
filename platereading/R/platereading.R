@@ -225,7 +225,7 @@ plateshiny <- function(directory) {
         sliderInput("initiallag","initial lag:",min = -20.0,
                     max = 150,value = 35,step=0.5,ticks=T),
         sliderInput("initialod0","initialod0:",min = -1.0,
-                                max = 1.0,value = 0,step=0.001,ticks=T)
+                                max = 1.0,value = 0,step=0.001,ticks=T),
         sliderInput("initialodmax","initialodmax:",min = 0.0,
                                 max = 2.0,value = 0.95,step=0.001,ticks=T)
 
