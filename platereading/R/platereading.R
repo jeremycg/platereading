@@ -199,7 +199,7 @@ plotter<-function(x,well, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95)
 #' @importFrom gplots plotmeans
 #' @importFrom shiny shinyApp pageWithSidebar headerPanel sidebarPanel sliderInput
 #' @importFrom shiny selectInput mainPanel tabsetPanel tabPanel renderPlot reactive
-#' @importFrom shiny checkboxInput plotOutput tableOutput renderTable
+#' @importFrom shiny checkboxInput plotOutput tableOutput renderTable actionButton
 plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)
