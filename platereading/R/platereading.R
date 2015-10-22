@@ -207,8 +207,6 @@ plateshiny <- function(directory) {
   stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
   if(!file.exists("outputfits.csv")){
     write.csv(namer(looper(getwd(), lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95),"strainlist.csv"),file="outputfits.csv",row.names=F)}
-  on.exit(
-    write.csv(namer(looper(getwd(), lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax),"strainlist.csv"),file="outputfits.csv",row.names=F))
   data<-read.csv("outputfits.csv")
   data$factortemp=as.factor(data$temperature)
   shinyApp(
