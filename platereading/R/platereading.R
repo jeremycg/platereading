@@ -225,8 +225,8 @@ plateshiny <- function(directory) {
         sliderInput("initialod0","initialod0:",min = -1.0,
                                 max = 1.0,value = 0,step=0.001,ticks=T),
         sliderInput("initialodmax","initialodmax:",min = 0.0,
-                                max = 2.0,value = 0.95,step=0.001,ticks=T)
-
+                                max = 2.0,value = 0.95,step=0.001,ticks=T),
+        actionButton("do", "Click to remake output.csv")
       ),
       mainPanel(
         tabsetPanel(
@@ -284,8 +284,10 @@ plateshiny <- function(directory) {
           plotlots(directory,input$query,"strainlist.csv", lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax)
         }
       )
-      on.exit(
-        write.csv(namer(looper(getwd(), lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax),"strainlist.csv"),file="outputfits.csv",row.names=F))
-      }
+      observeEvent(input$do, {
+        write.csv(namer(looper(getwd(), lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax),"strainlist.csv"),file="outputfits.csv",row.names=F)
+      })
+
+        }
   )
 }
