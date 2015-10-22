@@ -284,6 +284,8 @@ plateshiny <- function(directory) {
           plotlots(directory,input$query,"strainlist.csv", lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax)
         }
       )
-    }
+      on.exit(
+        write.csv(namer(looper(getwd(), lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax),"strainlist.csv"),file="outputfits.csv",row.names=F))
+      }
   )
 }
