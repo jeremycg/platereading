@@ -233,7 +233,7 @@ plateshiny <- function(directory) {
           tabPanel("Mean and sd", checkboxInput("ordered2",
                                                "Ordered?", value = FALSE), plotOutput("Plot3", height= "100%")),
           tabPanel("Fitted Plots", plotOutput("Plotfitted", height = "100%")),
-          tabPanel("Plate Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain), plotOutput("Plotstrain")))
+          tabPanel("Plate Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain), plotOutput("Plotstrain", height= "100%")))
         )
       )
     ),
@@ -283,11 +283,12 @@ plateshiny <- function(directory) {
         }
       )
       output$Plotstrain <- renderPlot({
-        z<-do.call(rbind, lapply(list.files()[grepl("[pP]late", list.files())], readonedir))
+        z <- do.call(rbind, lapply(list.files()[grepl("[pP]late", list.files())], readonedir))
         z$plate <- as.numeric(sub("[pP]late ", "", z$plate))
         z$row <- as.numeric(as.character(z$row))
         z <- left_join(z, strainlist, by = c(plate = "run", row = "column"))
         toplot <- z[z$strain == input$straintoplot, ]
+        plot(mtcars)
         print(toplot)
         s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) + geom_point() + facet_grid(~temperature) + geom_line(aes(group = well))
         print(s)
