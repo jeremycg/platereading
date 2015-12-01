@@ -97,13 +97,13 @@ dplyrfit<-function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){x %
 #' @param x A Directory containing all data and required outputfiles
 #' @return A dataframe containing the data fit and sorted by well
 #' @importFrom plyr rbind.fill
-looper<-function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
-  startingdir=getwd()
-  z3=data.frame()
+looper <- function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
+  startingdir = getwd()
+  z3 = data.frame()
   setwd(x)
-  dirlist=list.files()
+  dirlist = list.files()
   for(zz in 1:(length(dirlist)-1)){
-    z3=rbind.fill(z3,dplyrfit(readonedir(dirlist[zz]), lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1))
+    z3 = rbind.fill(z3,dplyrfit(readonedir(dirlist[zz]), lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1))
   }
   setwd(startingdir)
   return(z3)
@@ -204,6 +204,8 @@ plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)
   strainlist<-read.csv("strainlist.csv")
+  platelist <- list.files()
+  platelist <- platelist[grepl("^[Pp]late", platelist)]
   stderr <- function(x) sqrt(var(x,na.rm=TRUE)/length(na.omit(x)))
   if(!file.exists("outputfits.csv")){
     write.csv(namer(looper(getwd(), lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95),"strainlist.csv"),file="outputfits.csv",row.names=F)}
@@ -233,9 +235,10 @@ plateshiny <- function(directory) {
           tabPanel("BoxPlots",checkboxInput("ordered1",
                                             "Ordered?", value = FALSE), plotOutput("Plot1",height="100%")),
           tabPanel("Table", tableOutput("table1"),tableOutput("table2")),
-          tabPanel("Mean and sd",checkboxInput("ordered2",
+          tabPanel("Mean and sd", checkboxInput("ordered2",
                                                "Ordered?", value = FALSE), plotOutput("Plot3",height="100%")),
-          tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%"))
+          tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%")),
+          tabPanel("Plate Plot", selectInput("platetoplot", "Plate:", platelist))
         )
       )
     ),
