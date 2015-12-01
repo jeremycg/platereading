@@ -21,6 +21,7 @@ buchworm <- as.formula(od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) 
 #' @return A dataframe containing the data sorted by well and time
 #' @importFrom reshape2 melt
 #' @importFrom plyr rbind.fill
+#' @export
 readonedir<-function(x){
   startingdir=getwd()
   setwd(paste("./",x,sep=""))
@@ -161,17 +162,17 @@ compileall<-function(x,y=0.01){
 #' @importFrom plyr d_ply
 #' @importFrom plyr "."
 #' @export
-plotlots<-function(x,y,z, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){ #function of directory, strain, strainlist
-  startdir=getwd()
+plotlots<-function(x, y, z, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){ #function of directory, strain, strainlist
+  startdir = getwd()
   setwd(x)
-  strainlist=read.csv(z)
-  strainlist=strainlist[which(strainlist$strain==y),]
-  if(length(strainlist[,1])==0){return("strain not found")}
-  for(i in 1:length(strainlist[,1])){
-    singlehold=readonedir(paste("Plate",sprintf("%02d", strainlist[i,]$run)))
-    singlehold=singlehold[which(substring(singlehold$well, 2, nchar(x))==strainlist[i,]$column),]
-    singlehold$temperature=strainlist[i,]$temperature
-    d_ply(singlehold,.(well),plotter,lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1)
+  strainlist = read.csv(z)
+  strainlist = strainlist[which(strainlist$strain == y), ]
+  if(length(strainlist[ ,1]) == 0){return("strain not found")}
+  for(i in 1:length(strainlist[ ,1])){
+    singlehold = readonedir(paste("Plate", sprintf("%02d", strainlist[i, ]$run)))
+    singlehold = singlehold[which(substring(singlehold$well, 2, nchar(x)) == strainlist[i, ]$column), ]
+    singlehold$temperature = strainlist[i, ]$temperature
+    d_ply(singlehold, .(well), plotter, lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1)
   }
   setwd(startdir)
 }
@@ -216,10 +217,10 @@ plateshiny <- function(directory) {
       headerPanel("Plate Analysis"),
       sidebarPanel(
         sliderInput("cutoff","cutoff of residuals:",min = 0.0,
-                    max = 1.0,value = 0.5,step=0.001,ticks=T),
+                    max = 1.0, value = 0.5, step = 0.001, ticks = T),
         selectInput("variable", "Choose a variable:",
-                    choices = c("mumax","lag","od0","odmax")),
-        selectInput("query", "Strain:",levels(strainlist$strain)),
+                    choices = c("mumax", "lag", "od0", "odmax")),
+        selectInput("query", "Strain:", levels(strainlist$strain)),
         sliderInput("initialmumax","initialmumax",min = -1.0,
                     max = 1.0,value = 0.025,step=0.001,ticks=T),
         sliderInput("initiallag","initial lag:",min = -20.0,
@@ -232,13 +233,13 @@ plateshiny <- function(directory) {
       ),
       mainPanel(
         tabsetPanel(
-          tabPanel("BoxPlots",checkboxInput("ordered1",
-                                            "Ordered?", value = FALSE), plotOutput("Plot1",height="100%")),
-          tabPanel("Table", tableOutput("table1"),tableOutput("table2")),
+          tabPanel("BoxPlots", checkboxInput("ordered1",
+                                            "Ordered?", value = FALSE), plotOutput("Plot1", height = "100%")),
+          tabPanel("Table", tableOutput("table1"), tableOutput("table2")),
           tabPanel("Mean and sd", checkboxInput("ordered2",
-                                               "Ordered?", value = FALSE), plotOutput("Plot3",height="100%")),
-          tabPanel("Fitted Plots", plotOutput("Plotfitted",height="100%")),
-          tabPanel("Plate Plot", selectInput("platetoplot", "Plate:", platelist))
+                                               "Ordered?", value = FALSE), plotOutput("Plot3", height= "100%")),
+          tabPanel("Fitted Plots", plotOutput("Plotfitted", height = "100%")),
+          tabPanel("Plate Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain)))
         )
       )
     ),
@@ -284,6 +285,13 @@ plateshiny <- function(directory) {
         height=reactive({length(strainlist[strainlist$strain==input$query,]$run)*3000}),
         units="px",{
           par(mfrow=c(length(strainlist[strainlist$strain==input$query,]$run)*8,1))
+          plotlots(directory, input$query, "strainlist.csv", lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax)
+        }
+      )
+      output$Plotplate<-renderPlot(
+        data <- reactive({}),
+        units = "px", {
+          ggplot()
           plotlots(directory,input$query,"strainlist.csv", lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax)
         }
       )
