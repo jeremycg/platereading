@@ -283,7 +283,7 @@ plateshiny <- function(directory) {
         }
       )
       output$Plotstrain <- renderPlot({
-        setwd("directory")
+        setwd(directory)
         z <- do.call(rbind, lapply(list.files()[grepl("[pP]late", list.files())], readonedir))
         z$plate <- as.numeric(sub("[pP]late ", "", z$plate))
         z$row <- as.numeric(as.character(z$row))
