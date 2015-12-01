@@ -288,8 +288,9 @@ plateshiny <- function(directory) {
         z$plate <- as.numeric(sub("[pP]late ", "", z$plate))
         z$row <- as.numeric(as.character(z$row))
         z <- left_join(z, strainlist, by = c(plate = "run", row = "column"))
+        z$togroup <- paste0(z$well, z$plate)
         toplot <- z[z$strain == input$straintoplot, ]
-        s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) + geom_point() + facet_grid(~temperature) + geom_line(aes(group = well))
+        s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) + geom_point() + facet_grid(~temperature) + geom_line(aes(group = togroup))
         print(s)
         setwd("..")
         }, height = 1000, width = 1500
