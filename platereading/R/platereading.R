@@ -194,7 +194,7 @@ plotter<-function(x,well, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95)
 #' @importFrom shiny selectInput mainPanel tabsetPanel tabPanel renderPlot reactive
 #' @importFrom shiny checkboxInput plotOutput tableOutput renderTable actionButton
 #' @importFrom dplyr left_join
-#' @importFrom ggplot2 ggplot geom_line geom_point facet_grid theme_classic ylim
+#' @importFrom ggplot2 ggplot geom_line geom_point facet_grid theme_classic ylim aes
 plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)
