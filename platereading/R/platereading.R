@@ -194,7 +194,7 @@ plotter<-function(x,well, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95)
 #' @importFrom shiny selectInput mainPanel tabsetPanel tabPanel renderPlot reactive
 #' @importFrom shiny checkboxInput plotOutput tableOutput renderTable actionButton
 #' @importFrom dplyr left_join
-#' @importFrom ggplot2 ggplot geom_line geom_point facet_grid
+#' @importFrom ggplot2 ggplot geom_line geom_point facet_grid theme_classic ylim
 plateshiny <- function(directory) {
   startingdir<-getwd()
   setwd(directory)
@@ -233,7 +233,12 @@ plateshiny <- function(directory) {
           tabPanel("Mean and sd", checkboxInput("ordered2",
                                                "Ordered?", value = FALSE), plotOutput("Plot3", height= "100%")),
           tabPanel("Fitted Plots", plotOutput("Plotfitted", height = "100%")),
-          tabPanel("Strain Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain), selected = levels(strainlist$strain)[1]), plotOutput("Plotstrain", height= "100%"))
+          tabPanel("Strain Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain),
+          sliderInput("strainmin","y axis minimum:",
+                    min = -1, max = 1, value = -0.6, step=0.1, ticks = T),
+          sliderInput("strainmax","y axis maximum:",
+                    min = 0, max = 2, value = 1, step=0.1, ticks = T),
+          selected = levels(strainlist$strain)[1]), plotOutput("Plotstrain", height= "100%"))
         )
       )
     ),
@@ -294,7 +299,8 @@ plateshiny <- function(directory) {
                   geom_point() +
                   facet_grid(~temperature) +
                   geom_line(aes(group = togroup)) +
-                  theme_classic()
+                  theme_classic() +
+                  ylim(c(input$strainmin, input$strainmax))
         print(s)
         setwd("..")
         }, height = 1000, width = 1500
