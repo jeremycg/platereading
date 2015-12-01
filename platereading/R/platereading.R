@@ -20,27 +20,20 @@ buchworm <- as.formula(od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) 
 #' @param x A Directory containing one plate run
 #' @return A dataframe containing the data sorted by well and time
 #' @importFrom reshape2 melt
-#' @importFrom plyr rbind.fill
 #' @export
-readonedir<-function(x){
-  startingdir=getwd()
-  setwd(paste("./",x,sep=""))
-  filelist<-list.files()
-  x3<-data.frame()
-  for(y in 1:length(filelist)){
-    time=strsplit(filelist[y],".csv",fixed=T)[[1]]
-    x1=data.frame(stringsAsFactors = FALSE)
-    t=read.csv(filelist[y],header=TRUE,check.names=FALSE)
-    t=t[1:13]
-    x1<-melt(t,id.vars="")
-    names(x1)<-c("column","row","od")
-    x1$well<-paste(x1$column,x1$row,sep="")
-    x1$time<-time
-    x3=rbind.fill(x3,as.data.frame(x1))
-  }
-  setwd(startingdir)
-  x3$time=as.numeric(x3$time)
-  x3$plate<-x
+readonedir <- function(x){
+  x3 <- lapply(paste0(x, "/", list.files(x)),
+    function(file){
+       x1 <- melt(read.csv(file, check.names = FALSE)[1:13], id.vars = "")
+       names(x1) <- c("column", "row", "od")
+       x1$well <- paste0(x1$column, x1$row)
+       x1$time <- gsub("^.*/|.csv$", "", file)
+       x1
+       }
+  )
+  x3 <- do.call(rbind, x3)
+  x3$time <- as.numeric(x3$time)
+  x3$plate <- x
   return(x3)
 }
 
