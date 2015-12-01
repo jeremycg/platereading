@@ -233,7 +233,7 @@ plateshiny <- function(directory) {
           tabPanel("Mean and sd", checkboxInput("ordered2",
                                                "Ordered?", value = FALSE), plotOutput("Plot3", height= "100%")),
           tabPanel("Fitted Plots", plotOutput("Plotfitted", height = "100%")),
-          tabPanel("Plate Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain), selected = levels(strainlist$strain)[1]), plotOutput("Plotstrain", height= "100%"))
+          tabPanel("Strain Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain), selected = levels(strainlist$strain)[1]), plotOutput("Plotstrain", height= "100%"))
         )
       )
     ),
@@ -290,7 +290,11 @@ plateshiny <- function(directory) {
         z <- left_join(z, strainlist, by = c(plate = "run", row = "column"))
         z$togroup <- paste0(z$well, z$plate)
         toplot <- z[z$strain == input$straintoplot, ]
-        s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) + geom_point() + facet_grid(~temperature) + geom_line(aes(group = togroup))
+        s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) +
+                  geom_point() +
+                  facet_grid(~temperature) +
+                  geom_line(aes(group = togroup)) +
+                  theme_classic()
         print(s)
         setwd("..")
         }, height = 1000, width = 1500
