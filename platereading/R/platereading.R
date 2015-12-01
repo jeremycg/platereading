@@ -233,7 +233,7 @@ plateshiny <- function(directory) {
           tabPanel("Mean and sd", checkboxInput("ordered2",
                                                "Ordered?", value = FALSE), plotOutput("Plot3", height= "100%")),
           tabPanel("Fitted Plots", plotOutput("Plotfitted", height = "100%")),
-          tabPanel("Plate Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain), plotOutput("Plotstrain", height= "100%")))
+          tabPanel("Plate Plot", selectInput("straintoplot", "Strain:", levels(strainlist$strain)), plotOutput("Plotstrain", height= "100%"))
         )
       )
     ),
