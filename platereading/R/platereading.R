@@ -289,7 +289,6 @@ plateshiny <- function(directory) {
         z$row <- as.numeric(as.character(z$row))
         z <- left_join(z, strainlist, by = c(plate = "run", row = "column"))
         toplot <- z[z$strain == input$straintoplot, ]
-        print(plot(mtcars))
         s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) + geom_point() + facet_grid(~temperature) + geom_line(aes(group = well))
         print(s)
         setwd("..")
