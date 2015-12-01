@@ -123,7 +123,6 @@ namer<-function(x,y){
   x$column=as.numeric(substring(as.character(x$well), 2, nchar(as.character(x$well))))
   x$row=substring(as.character(x$well), 1,1)
   z2=merge(x, strainlist, by=c("run","column"))
-  asNumeric <- function(x){as.numeric(as.character(x))}
   return(z2)
 }
 
