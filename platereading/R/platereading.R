@@ -282,8 +282,9 @@ plateshiny <- function(directory) {
           plotlots(directory, input$query, "strainlist.csv", lag1 = input$initiallag, mumax1 = input$initialmumax, od01 = input$initialod0, odmax1 = input$initialodmax)
         }
       )
-      output$Plotstrain <- renderPlot(
-        {z <- do.call(rbind, lapply(list.files()[grepl("[pP]late", list.files())], readonedir))
+      output$Plotstrain <- renderPlot({
+        setwd("directory")
+        z <- do.call(rbind, lapply(list.files()[grepl("[pP]late", list.files())], readonedir))
         z$plate <- as.numeric(sub("[pP]late ", "", z$plate))
         z$row <- as.numeric(as.character(z$row))
         z <- left_join(z, strainlist, by = c(plate = "run", row = "column"))
@@ -291,6 +292,7 @@ plateshiny <- function(directory) {
         print(plot(mtcars))
         s <- ggplot(toplot, aes(x = time, y = 1-od, col = factor(plate))) + geom_point() + facet_grid(~temperature) + geom_line(aes(group = well))
         print(s)
+        setwd("..")
         }, height = 1000, width = 1500
         )
       observeEvent(input$do, {
