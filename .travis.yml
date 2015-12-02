@@ -1,15 +1,18 @@
-# Sample .travis.yml for R projects from https://github.com/craigcitro/r-travis
-sudo: required
 language: r
-
-before_install:
-  - cd ./platereading
-  - echo "options(repos = c(CRAN='https://cran.rstudio.com/'))" > ~/.Rprofile
-
+warnings_are_errors: true
+sudo: required
 env:
-  - WARNINGS_ARE_ERRORS=1
-
-notifications:
-  email:
-    on_success: change
-    on_failure: change
+  global:
+  - CRAN: http://cran.rstudio.com
+  - NOT_CRAN: true
+before_install:
+- cd ./platereading
+- echo "options(repos = c(CRAN='https://cran.rstudio.com/'))" > ~/.Rprofile
+r_binary_packages:
+- dplyr
+- gplots
+- reshape2
+- magrittr
+- ggplot2
+- plyr
+- shiny
