@@ -10,9 +10,10 @@ utils::globalVariables(c("well","plate","strain","temperature"))
 #' Food Microbiol. 14, 313-326.
 #' @usage buchworm
 #' @format an equation, with od modelled as a response of od0, lag, mumax and odmax
-buchworm <- as.formula(od ~ od0 + (time >= lag) * (time <= (lag + (odmax - od0) *
-                                                              log(10)/mumax)) * mumax * (time - lag)/log(10) + (time >= lag) *
-                         (time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0))
+buchworm <- as.formula(od ~
+              od0 +
+              (time >= lag) * (time <= (lag + (odmax - od0) * log(10)/mumax)) * mumax * (time - lag)/log(10) +
+              (time >= lag) * (time > (lag + (odmax - od0) * log(10)/mumax)) * (odmax - od0))
 
 
 #' Read in a single plate directory of data
@@ -44,19 +45,19 @@ readonedir <- function(x){
 #' @param y an indication of whether to omit t=0 or not, defaults to 1, remove
 #' @return A dataframe containing the fitted data
 
-fitbuch<-function(x,y=1, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
-  x$od<-1-x$od
-  if(y==1){x=x[x$time!=0,]}
-  z<-NULL
-  try(z<-nls(buchworm,x,list(lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1),control=nls.control(minFactor=1/4096,warnOnly=T)))
+fitbuch<-function(x, y = 1, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
+  x$od <- 1 - x$od
+  if(y==1){x <- x[x$time != 0, ]}
+  z <- NULL
+  try(z <- nls(buchworm, x, list(lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1), control = nls.control(minFactor = 1/4096, warnOnly = T)))
   if(is.null(z)){
-    z3<-data.frame(t(rep(NA,8)))
-    names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
+    z3 <- data.frame(t(rep(NA, 8)))
+    names(z3) <- c("lag", "mumax", "od0", "odmax", "residual", "well", "plate", "run")
     return(z3)
   }
-  z3=data.frame(t(matrix(coef(z))),sum(resid(z)^2)/nrow(x),x$well[1],
-                x$plate[1],as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]],1)))
-  names(z3)=c("lag","mumax","od0","odmax","residual","well","plate","run")
+  z3 <- data.frame(t(matrix(coef(z))), sum(resid(z)^2)/nrow(x), x$well[1],
+                x$plate[1], as.numeric(tail(strsplit(as.character(x$plate[1]), split=' ', fixed=TRUE)[[1]], 1)))
+  names(z3) <- c("lag", "mumax", "od0", "odmax", "residual", "well", "plate", "run")
   return(z3)
 }
 
@@ -66,8 +67,8 @@ fitbuch<-function(x,y=1, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
 #' @return A dataframe containing the fitted data
 #' @importFrom plyr ddply
 #' @importFrom plyr "."
-plyrfit<-function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
-  ddply(x,.(plate,well),function(df){fitbuch(df, lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1)})
+plyrfit <- function(x, lag1 = 35, mumax1 = 0.025, od01 = 0.25, odmax1 = 0.95){
+  ddply(x, .(plate, well), function(df){fitbuch(df, lag = lag1, mumax = mumax1, od0 = od01, odmax = odmax1)})
 }
 
 #' Fit multiple directories of data (output by readonedir) with the buch function
